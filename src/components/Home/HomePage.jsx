@@ -1,11 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import JSONFileHandlerPage from '../JSONFileHandler/JSONFileHandlerPage';
+import TotalPricePage from '../TotalPrice/TotalPricePage';
+import ProductSearchPage from '../ProductSearch/ProductSearchPage';
 const HomePage = () => {
     const [products, setProducts] = useState(() => {
         const storedProducts = localStorage.getItem('products');
         return storedProducts ? JSON.parse(storedProducts) : [];
     });
+    const [filteredProducts, setFilteredProducts] = useState(products);
+
+    // Actualiza `filteredProducts` cuando cambie `products`
+    React.useEffect(() => {
+      setFilteredProducts(products);
+    }, [products]);
 
     const [newProduct, setNewProduct] = useState({ nombre: '', precio: '', cantidad: '' });
 
@@ -41,21 +49,41 @@ const HomePage = () => {
         setProducts(updatedProducts);
     };
 
+    const [isAscending, setIsAscending] = useState(true);
+
+    // Función para ordenar productos por nombre
+    const handleSortByName = () => {
+        const sortedProducts = [...products].sort((a, b) => {
+            if (isAscending) {
+                return a.nombre.localeCompare(b.nombre); // Orden ascendente
+            } else {
+                return b.nombre.localeCompare(a.nombre); // Orden descendente
+            }
+        });
+
+        setProducts(sortedProducts);
+        setIsAscending(!isAscending); // Alterna el estado
+    };
+
     useEffect(() => {
         localStorage.setItem('products', JSON.stringify(products));
     }, [products]);
 
     return (
         <div className="container my-4">
-            <h2 className="mb-4">Productos</h2>
-            <div className='container'>
+            <h2 className="mb-4">Productos ({products ? products.length : 0})</h2>
+            <div className='container d-flex justify-content-between m-3'>
                 <JSONFileHandlerPage products={products} setProducts={setProducts} />
+                <TotalPricePage products={products} />
             </div>
+            <ProductSearchPage products={products} setFilteredProducts={setFilteredProducts} />
             <div className="table-responsive">
                 <table className="table table-striped table-bordered mx-auto">
                     <thead className="table-primary">
                         <tr>
-                            <th scope="col">Nombre</th>
+                            <th onClick={handleSortByName} style={{ cursor: 'pointer' }}>
+                                Nombre {isAscending ? '▲' : '▼'}
+                            </th>
                             <th scope="col">Precio</th>
                             <th scope="col">Cantidad</th>
                             <th scope="col">Precio Total</th>
@@ -64,7 +92,7 @@ const HomePage = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {products.map((product, index) => (
+                        {filteredProducts.map((product, index) => (
                             <tr key={index}>
                                 <td>{product.nombre}</td>
                                 <td>

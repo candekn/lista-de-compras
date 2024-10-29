@@ -1,3 +1,4 @@
+import React from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './assets/styles/bootstrap-superhero.min.css';
 import HomePage from './components/Home/HomePage';
